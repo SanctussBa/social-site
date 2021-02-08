@@ -1,0 +1,17 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+
+<div>
+
+  <h1>Log In</h1>
+  <div class="container-border">
+    <a href="{{url_for('home')}}">Home</a><br><br>
+    <small>Don't have account yet?</small><br>
+    <a href="{{url_for('sign_in')}}">Sign In</a>
+  </div>
+
+
+</div>
+
+{% endblock %}

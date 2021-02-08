@@ -1,0 +1,39 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  display: table;
+}
+
+footer {
+  display: table-row;
+  height: 0;
+  background-color: #FEF5E7;
+}
+
+header {
+  background-color: #F4F6F6;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #F9EBEA;
+}
+
+
+
+.container-border {
+  border: solid 1px green;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
