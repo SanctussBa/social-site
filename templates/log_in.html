@@ -5,10 +5,34 @@
 <div>
 
   <h1>Log In</h1>
+    <a href="{{url_for('home')}}">Back to homepage</a><br><br>
+
+    {% if message %}
+    <h2 style="color:green;">{{ message }}</h2>
+    {% endif %}
+    
   <div class="container-border">
-    <a href="{{url_for('home')}}">Home</a><br><br>
-    <small>Don't have account yet?</small><br>
-    <a href="{{url_for('sign_in')}}">Sign In</a>
+
+    <h3>Log In</h3>
+
+    <form class="" action="{{url_for('log_in')}}" method="post">
+
+      <label for="email">Email</label><br>
+      <input type="email" name="email" required><br><br>
+
+      <label for="password">Password</label><br>
+      <input type="password" name="password" required><br><br>
+
+
+      <input type="submit" name="sign" value="Log In">
+
+    </form>
+
+
+    <legend>Not yet registered?</legend>
+
+
+    <a href="{{url_for('sign_in')}}">Sign Up</a>
   </div>
 
 

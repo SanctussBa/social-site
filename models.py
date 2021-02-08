@@ -8,19 +8,24 @@ class Profile(db.Model):
     username = db.Column(db.String, unique=True)
     email = db.Column(db.String, unique=True)
     password = db.Column(db.String)
-    profile_picture = db.Column(db.LargeBinary)
-    posts = db.relationship('Post', back_populates='profile')
+    profile_picture = db.Column(db.LargeBinary, nullable=True)
+    posts = db.relationship('Post', back_populates='author')
 
 
 class Post(db.Model):
     __tablename__='post'
     id = db.Column(db.Integer, primary_key = True)
 
-    date = db.Column(db.DateTime, default=datetime.utcnow)
+    date = db.Column(db.DateTime)
+    # datetime_object = datetime.utcnow()
+    # date = datetime_object.strftime("%d-%m-%Y  %H:%M")
+
     votes = db.Column(db.Integer)
     title = db.Column(db.String(50))
     text = db.Column(db.String(400))
     post_picture = db.Column(db.LargeBinary)
+    profile_id = db.Column(db.Integer, db.ForeignKey('profile.id'))
+    author =  db.relationship('Profile', back_populates='posts')
     post_comments = db.relationship('Comment', back_populates='post')
 
 

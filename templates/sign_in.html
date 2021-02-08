@@ -4,9 +4,32 @@
 
 <div>
 
-  <h1>Sign_in</h1>
+  <h1>Sign Up</h1>
+  <a href="{{url_for('home')}}">Back to homepage</a><br><br>
+
+  {% if error %}
+    <h2 style="color:red;"> {{ error }}</h2>
+  {% endif %}
+
   <div class="container-border">
-    <a href="{{url_for('home')}}">Home</a><br><br>
+    <form class="" action="{{url_for('sign_in')}}" method="post">
+      <label for="name">Name</label><br>
+      <input type="text" name="name" required><br><br>
+
+      <label for="email">Email</label><br>
+      <input type="email" name="email" required><br><br>
+
+      <label for="password">Password</label><br>
+      <input type="password" name="password" id="password" required><br><br>
+
+      <label for="repeat_password">Repeat Password</label><br>
+      <input type="password" name="repeat_password" id="confirm_password" required><br><br>
+
+
+      <input type="submit" name="sign" value="Sign In">
+
+    </form>
+
     <small>Already have an account?</small><br>
     <a href="{{url_for('log_in')}}">Log In</a>
   </div>
@@ -14,4 +37,19 @@
 
 </div>
 
+<script type="text/javascript">
+  var password = document.getElementById("password")
+  , confirm_password = document.getElementById("confirm_password");
+
+  function validatePassword(){
+    if(password.value != confirm_password.value) {
+      confirm_password.setCustomValidity("Passwords Don't Match");
+    } else {
+      confirm_password.setCustomValidity('');
+    }
+  }
+
+  password.onchange = validatePassword;
+  confirm_password.onkeyup = validatePassword;
+</script>
 {% endblock %}
