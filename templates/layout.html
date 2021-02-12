@@ -8,6 +8,11 @@
   <body>
     <header>
       <h2>This is nav bar</h2>
+      {% if current_user.is_authenticated %}
+        <a href="{{url_for('settings', username=current_user.username)}}">settings</a>
+        <a href="{{url_for('logout')}}">Log Out</a>
+      {% endif %}
+      <a href="{{url_for('home')}}">HOME</a>
     </header>
 
     <main>

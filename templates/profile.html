@@ -1,0 +1,14 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+
+<div>
+
+  {% if current_user.is_authenticated %}
+    <h2>Welcome, {{ current_user.username }}!</h2>
+  {% endif %}
+
+  <a href="{{url_for('settings', username=current_user.username)}}">Profile Settings</a>
+</div>
+
+{% endblock %}

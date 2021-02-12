@@ -1,0 +1,14 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+
+<div>
+
+  {% if current_user.is_authenticated %}
+    <h2>Settings for {{ current_user.username }}!</h2>
+    <img src="data:image/jpg;base64,{{ profile_pic }}" alt="img">
+  {% endif %}
+
+</div>
+
+{% endblock %}
