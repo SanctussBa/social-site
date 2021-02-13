@@ -11,6 +11,9 @@ from flask_bcrypt import Bcrypt
 from flask_login import current_user, login_required, LoginManager, login_user, UserMixin, logout_user
 # pip install flask-login
 
+from flask_ckeditor import CKEditor
+# pip install Flask-CKEditor
+
 
 import base64
 import os
@@ -23,15 +26,16 @@ app = Flask(__name__)
 app.config.from_pyfile('config.py')
 
 db = SQLAlchemy(app)
-
 bcrypt = Bcrypt(app)
+ckeditor = CKEditor(app)
 
-
-login_manager = LoginManager()
+login_manager = LoginManager(app)
 login_manager.init_app(app)
 
 # login_manager.login_view = 'users.login'
 # login_manager.login_message_category = 'info'
+
+
 # _______________________________________________________________________
 
 profile_pic = open('static/pics/default.png', 'rb').read()
@@ -52,14 +56,14 @@ class Post(db.Model):
     __tablename__='post'
     id = db.Column(db.Integer, primary_key = True)
 
-    date = db.Column(db.DateTime)
+    date = db.Column(db.DateTime, default=datetime.now)
     # datetime_object = datetime.utcnow()
     # date = datetime_object.strftime("%d-%m-%Y  %H:%M")
 
-    votes = db.Column(db.Integer)
+    votes = db.Column(db.Integer, nullable=True)
     title = db.Column(db.String(50))
     text = db.Column(db.String(400))
-    post_picture = db.Column(db.LargeBinary)
+    post_picture = db.Column(db.LargeBinary, nullable=True)
     profile_id = db.Column(db.Integer, db.ForeignKey('profile.id'))
     author =  db.relationship('Profile', back_populates='posts')
     post_comments = db.relationship('Comment', back_populates='post')
@@ -91,7 +95,8 @@ def load_user(profile_id):
 
 @app.route('/')
 def home():
-    return render_template('home.html')
+    posts = Post.query.order_by(Post.date.desc())
+    return render_template('home.html', posts=posts)
 
 @app.route('/sign_in', methods=['GET', 'POST'])
 def sign_in():
@@ -160,5 +165,48 @@ def settings(username):
 def logout():
     logout_user()
     return redirect(url_for('home'))
+
+@app.route("/add_post", methods=['GET', 'POST'] )
+@login_required
+def add_post():
+    if request.method == 'POST':
+        # try:
+        #     title = request.form.get('title')
+        #     text = request.form.get('ckeditor')
+        #     votes = request.form.get('vote')
+        #
+        #     date = datetime.now("%d/%m/%Y- %H:%M")
+        #     # date = datetime_obj.strftime("%d/%m/%Y- %H:%M")
+        #
+        #     profile_id = profile.id
+        #     new_post = Post(date=date, votes=votes, title=title, text=text, profile_id = profile_id)
+        #     db.session.add(new_post)
+        #     db.session.commit()
+        #
+        #     return redirect(url_for('home'))
+        #
+        # except:
+        #     print("error occured")
+
+        title = request.form.get('title')
+        text = request.form.get('ckeditor')
+
+
+        date = datetime.now()
+        # date = datetime_obj.strftime("%d/%m/%Y- %H:%M")
+
+        profile_id = current_user.id
+        new_post = Post(date=date, title=title, text=text, profile_id = profile_id)
+        db.session.add(new_post)
+        db.session.commit()
+
+        return redirect(url_for('home'))
+        #
+        # return render_template('add_post.html')
+
+    return render_template('add_post.html')
+
+
+
 if __name__ == '__main__':
     app.run()

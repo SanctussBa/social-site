@@ -5,15 +5,35 @@
 <div>
 
   <h1>Homepage</h1>
-  <div class="container-border">
+  {% if current_user.is_authenticated %}
+  <div>
 
-    <h3>Welcome to social site!</h3>
-
-    <a href="{{url_for('log_in')}}">Log In</a>
-    <a href="{{url_for('sign_in')}}">Sign Up</a>
+    <h2> You are now logged in as {{ current_user.username }}</h2>
 
   </div>
 
+  {% else %}
+    <div class="container-border">
+
+      <h3>Welcome to social site!</h3>
+
+      <a href="{{url_for('log_in')}}">Log In</a>
+      <a href="{{url_for('sign_in')}}">Sign Up</a>
+
+    </div>
+  {% endif %}
+
+</div>
+<div class="posts">
+  {% for p in posts %}
+    <div>
+      <h3>{{ p.profile_id.username }}</h3>
+      <h2>{{ p.title }}</h2>
+      <small>{{ p.date }}</small><br>
+      {{ p.text | safe }}
+
+    </div>
+  {% endfor %}
 
 </div>
 

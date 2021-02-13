@@ -1,0 +1,30 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+
+
+<div class="post-form-container">
+
+  <form class="" action="{{url_for('add_post')}}" method="post" enctype=multipart/form-data>
+    <label for="title">Post title</label><br>
+    <input type="text" name="title" required><br>
+
+    <label for="text">Post text</label><br>
+    <!-- <textarea id="post" name="name" rows="8" cols="80"></textarea><br> -->
+    {{ ckeditor.create() }}<br>
+
+    <!-- <label for="picture">Add image</label>
+    <input type="file" name="image" ><br><br> -->
+
+    <label for="vote">Up Vote</label>
+
+    <input type="submit" value="Post">
+  </form>
+
+
+
+</div>
+{{ ckeditor.load() }}
+{{ ckeditor.config() }}
+
+{% endblock %}
