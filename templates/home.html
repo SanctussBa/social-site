@@ -24,15 +24,53 @@
   {% endif %}
 
 </div>
-<div class="posts">
+<div>
   {% for p in posts %}
-    <div>
-      <h3>{{ p.profile_id.username }}</h3>
-      <h2>{{ p.title }}</h2>
-      <small>{{ p.date }}</small><br>
-      {{ p.text | safe }}
 
+
+    <div class="posts" id="post{{ p.id }}">
+      <img style="width:150px; height:auto;" src="data:image/jpg;base64,{{p.author.profile_picture | b64encode }}" alt="prof pic">
+      <h3>{{ p.author.username }}{{ p.id }}</h3>
+      <h2>{{ p.title }}</h2>
+      <small>{{ p.post_date.strftime("%d/%m/%Y- %H:%M") }}</small><br>
+      {{ p.text | safe }}
     </div>
+
+    <!-- Comment form shows up only if user is logged in -->
+    {% if current_user.is_authenticated %}
+    <div class="comments-container">
+      <div class="comment">
+        <form action="{{url_for('add_comment')}}" method="post">
+          <textarea name="comment" rows="2" cols="60" placeholder="Comment..."></textarea>
+          <input type="hidden" name="hidden" value="{{ p.id }}">
+          <input type="submit" name="comment_form" value="Comment">
+        </form>
+      </div>
+    </div>
+
+
+    <!-- If user is not logged in, then comment form is not there. User is not able to add comment -->
+    {% else %}
+    <div class="comments-container">
+      <div class="for_comments_login">
+        <small>If you would like to leave comment, please </small><a href="{{url_for('log_in')}}">Log in</a>
+      </div>
+    </div>
+    {% endif %}
+    <div class="comments-container">
+      {% for pc in p.post_comments %}
+      <div class="border">
+        <img style="width:30px; height:auto;" src="data:image/jpg;base64,{{pc.comment_author.profile_picture | b64encode }}" alt="prof pic">
+        <small>{{pc.comment_date.strftime("%d/%m/%Y- %H:%M")}}</small>
+
+        <h3>{{ pc.comment_author.username }}</h3><small>{{pc.comment}}</small><br>
+      </div>
+
+      {% endfor %}
+    </div>
+
+
+
   {% endfor %}
 
 </div>

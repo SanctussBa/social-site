@@ -1,4 +1,3 @@
-
 from flask import Flask, render_template, request, url_for, redirect, session
 # pip install Flask, template-render
 
@@ -13,7 +12,6 @@ from flask_login import current_user, login_required, LoginManager, login_user, 
 
 from flask_ckeditor import CKEditor
 # pip install Flask-CKEditor
-
 
 import base64
 import os
@@ -48,22 +46,21 @@ class Profile(db.Model, UserMixin):
     email = db.Column(db.String, unique=True)
     password = db.Column(db.String)
     profile_picture = db.Column(db.LargeBinary, default=profile_pic, nullable=False)
-    posts = db.relationship('Post', back_populates='author')
 
+    posts = db.relationship('Post', back_populates='author')
+    comments = db.relationship('Comment', back_populates='comment_author')
 
 
 class Post(db.Model):
     __tablename__='post'
     id = db.Column(db.Integer, primary_key = True)
 
-    date = db.Column(db.DateTime, default=datetime.now)
-    # datetime_object = datetime.utcnow()
-    # date = datetime_object.strftime("%d-%m-%Y  %H:%M")
-
+    post_date = db.Column(db.DateTime, default=datetime.now)
     votes = db.Column(db.Integer, nullable=True)
     title = db.Column(db.String(50))
     text = db.Column(db.String(400))
     post_picture = db.Column(db.LargeBinary, nullable=True)
+
     profile_id = db.Column(db.Integer, db.ForeignKey('profile.id'))
     author =  db.relationship('Profile', back_populates='posts')
     post_comments = db.relationship('Comment', back_populates='post')
@@ -72,21 +69,29 @@ class Post(db.Model):
 class Comment(db.Model):
     __tablename__='comment'
     id = db.Column(db.Integer, primary_key = True)
-
+    comment_date = db.Column(db.DateTime, default=datetime.now)
     comment = db.Column(db.String(300))
-    post_reply =  db.Column(db.String(200))
+    comment_reply =  db.Column(db.String(200))
+
+    author_id =  db.Column(db.Integer, db.ForeignKey('profile.id'))
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'))
+    comment_author = db.relationship('Profile', back_populates='comments')
     post = db.relationship('Post', back_populates='post_comments')
 
-    def __repr__(self):
-        if reply:
-            return f"{self.comment}\n   {self.reply}"
-        else:
-            return f"{self.comment}"
+    def __init__(self, comment, comment_date, author_id, post_id):
+        self.comment = comment
+        self.comment_date = comment_date
+        self.author_id = author_id
+        self.post_id = post_id
 
 
 # -----------------------------------------------------------------------
 # -----------------------------------------------------------------------
+# Custom filter in jinja_env
+def b64encode(data):
+    return base64.b64encode(data).decode()
+    app.jinja_env.filters['b64encode'] = b64encode
+
 
 
 @login_manager.user_loader
@@ -95,7 +100,17 @@ def load_user(profile_id):
 
 @app.route('/')
 def home():
-    posts = Post.query.order_by(Post.date.desc())
+    posts = Post.query.order_by(Post.post_date.desc())
+    post_comments = Comment.query.order_by(Comment.comment_date.asc())
+    # Necessary for custom filter in jinja
+    app.jinja_env.filters['b64encode'] = b64encode
+    return render_template('home.html', posts=posts, post_comments=post_comments)
+
+# redirected from def add_comment()
+@app.route('/home/post<post_id>')
+def home_current_post(post_id):
+    posts = Post.query.order_by(Post.post_date.desc())
+    app.jinja_env.filters['b64encode'] = b64encode
     return render_template('home.html', posts=posts)
 
 @app.route('/sign_in', methods=['GET', 'POST'])
@@ -154,10 +169,12 @@ def profile():
 
     return render_template('profile.html')
 
-@app.route('/settings/<username>')
+@app.route('/profile/<username>')
 @login_required
 def settings(username):
-    profile_pic = base64.b64encode(current_user.profile_picture).decode('utf-8')
+    i = Profile.query.filter_by(username=username).first()
+
+    profile_pic = base64.b64encode(i.profile_picture).decode('utf-8')
     return render_template('settings.html', profile_pic = profile_pic)
 
 @app.route("/logout")
@@ -170,43 +187,97 @@ def logout():
 @login_required
 def add_post():
     if request.method == 'POST':
-        # try:
-        #     title = request.form.get('title')
-        #     text = request.form.get('ckeditor')
-        #     votes = request.form.get('vote')
-        #
-        #     date = datetime.now("%d/%m/%Y- %H:%M")
-        #     # date = datetime_obj.strftime("%d/%m/%Y- %H:%M")
-        #
-        #     profile_id = profile.id
-        #     new_post = Post(date=date, votes=votes, title=title, text=text, profile_id = profile_id)
-        #     db.session.add(new_post)
-        #     db.session.commit()
-        #
-        #     return redirect(url_for('home'))
-        #
-        # except:
-        #     print("error occured")
 
-        title = request.form.get('title')
-        text = request.form.get('ckeditor')
+        try:
+
+            title = request.form.get('title')
+            text = request.form.get('ckeditor')
 
 
-        date = datetime.now()
-        # date = datetime_obj.strftime("%d/%m/%Y- %H:%M")
+            date = datetime.now()
+            # date = datetime_obj.strftime("%d/%m/%Y- %H:%M")
 
-        profile_id = current_user.id
-        new_post = Post(date=date, title=title, text=text, profile_id = profile_id)
-        db.session.add(new_post)
-        db.session.commit()
+            profile_id = current_user.id
+            new_post = Post(post_date=date, title=title, text=text, profile_id = profile_id)
+            db.session.add(new_post)
+            db.session.commit()
 
-        return redirect(url_for('home'))
-        #
-        # return render_template('add_post.html')
+            return redirect(url_for('home'))
+        except:
+            error = "Something went wrong"
+            return render_template('add_post.html', error = error)
 
     return render_template('add_post.html')
 
 
+
+@app.route("/home/comment", methods=['GET', 'POST'])
+@login_required
+def add_comment():
+    if request.method == 'POST':
+        # comment_form is a name of submit input button
+        if 'comment_form' in request.form:
+            #
+            # try:
+            #
+            #     comment_text = request.form.get('comment')
+            #     comment_author = current_user.username
+            #     author_id = current_user.id
+            #     post_id = request.form['hidden']
+            #     comment_date = datetime.now()
+            #
+            #     new_comment = Comment(comment_date=comment_date, comment=comment_text, author_id=author_id, post_id=post_id)
+            #
+            #     db.session.add(new_comment)
+            #     db.session.commit()
+            #     return redirect(url_for('home_current_post', post_id=post_id))
+            # except:
+            #     print("Error")
+            #     pass
+            comment_text = request.form.get('comment')
+            comment_author = current_user.username
+            author_id = current_user.id
+            post_id = request.form['hidden']
+            comment_date = datetime.now()
+
+            new_comment = Comment(comment_date=comment_date, comment=comment_text, author_id=author_id, post_id=post_id)
+
+            db.session.add(new_comment)
+            db.session.commit()
+            return redirect(url_for('home_current_post', post_id=post_id))
+        else:
+            print(" comment_form is not in request")
+            pass
+    return redirect(url_for('home'))
+
+
+@app.route("/image_handler", methods=['GET', 'POST'])
+@login_required
+def image_handler():
+    if request.method == "POST":
+        if 'image' in request.form:
+
+            path = os.path.abspath(os.getcwd())
+            username = current_user.username
+            image = request.files['image']
+
+            filename = "img.jpg"
+            full_path = os.path.join(path, "static/pics","")
+            image.save(full_path + filename)
+
+            new_binary_data = open(full_path + "img.jpg", 'rb').read()
+
+            change_pic = Profile.query.filter_by(username=current_user.username).first()
+            change_pic.profile_picture = new_binary_data
+            db.session.commit()
+
+            os.remove(full_path + "img.jpg")
+            return redirect(url_for('settings', username=username))
+        else:
+            print(" image form is not in request")
+            pass
+    else:
+        return redirect(url_for('settings'))
 
 if __name__ == '__main__':
     app.run()

@@ -6,7 +6,12 @@
 
   {% if current_user.is_authenticated %}
     <h2>Settings for {{ current_user.username }}!</h2>
-    <img src="data:image/jpg;base64,{{ profile_pic }}" alt="img">
+    <img style="width:250px; height:auto;" src="data:image/jpg;base64,{{ profile_pic }}" alt="img">
+    <form action="{{url_for('image_handler')}}" enctype='multipart/form-data' method="post">
+      <input type="file" name="image">
+      <input type="submit" name="image" value="Upload">
+
+    </form>
   {% endif %}
 
 </div>

@@ -2,7 +2,9 @@
 
 {% block content %}
 
-
+{% if error %}
+  <h2 style></h2>
+{% endif %}
 <div class="post-form-container">
 
   <form class="" action="{{url_for('add_post')}}" method="post" enctype=multipart/form-data>

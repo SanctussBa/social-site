@@ -12,3 +12,6 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 CKEDITOR_SERVE_LOCAL = True
 CKEDITOR_HEIGHT = 200
+
+# To prevent users from uploading very big files
+MAX_CONTENT_LENGTH = 800 * 1000
